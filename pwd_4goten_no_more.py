@@ -8,7 +8,8 @@ empty), and your common password, the corresponding strong password will remind
 you accurately. The username will always give you, don't worry about forgetting.
     If you only provide your common password, you will get a random username
 and a strong password.
-    P.S. The strong password is NOT contain the space character.
+    P.S. The strong password is NOT contain the space character. And Website
+Name supports Unicode (e.g. zh-cn).
 """
 
 # Copyright (c) 2018, owtotwo.
@@ -26,7 +27,7 @@ and a strong password.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 import hashlib
 import time
@@ -39,20 +40,24 @@ PASSWORD_LENGTH = 16
 is_account_generator = False
 
 website = raw_input("Website(salt/empty):")
-username = ''
-if not website:
-    username = raw_input("Username(salt/empty):")
-else:
+username = '' if website else raw_input("Username(salt/empty):")
+password = raw_input("Password:")
+
+if not password:
+    print("Error: Password cannot be empty.")
+    exit()
+
+if website and not username:
+    # maybe it is a url of website.
     parsed_uri = urlparse.urlparse(website)
     if parsed_uri.netloc:
         website = parsed_uri.netloc
     website = website.lower()
     md5 = hashlib.md5()
-    md5.update(website)
+    md5.update(website + password)
     hash_website = md5.hexdigest()
     username = hash_website[:USERNAME_LENGTH]
-
-if not username:
+elif not website and not username:
     is_account_generator = True
     timestamp = time.time()
     random_float = random.SystemRandom().random()
@@ -60,18 +65,13 @@ if not username:
     md5.update(str(timestamp + random_float))
     username = md5.hexdigest()[:USERNAME_LENGTH]
 
-password = raw_input("Password:")
-
-if not password:
-    print("Error: Password cannot be empty.")
-    exit()
-
 pwd_str = password
 
-if username:
-    md5 = hashlib.md5()
-    md5.update(username)
-    pwd_str = pwd_str + md5.hexdigest()
+assert username
+    
+md5 = hashlib.md5()
+md5.update(username)
+pwd_str = pwd_str + md5.hexdigest()
     
 sha1 = hashlib.sha1()
 sha1.update(pwd_str)
