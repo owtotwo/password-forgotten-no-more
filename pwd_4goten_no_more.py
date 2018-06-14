@@ -33,6 +33,65 @@ import hashlib
 import time
 import urlparse
 import random
+import re
+
+def alphanum_to_alphanumpunct(s):
+    assert s.isalnum()
+    ascii_list = []
+
+    DIGIT_NUM = ord('9') - ord('0') + 1
+    UPPERCASE_NUM = ord('Z') - ord('A') + 1
+    LOWERCASE_NUM = ord('z') - ord('a') + 1
+    MD5_BASE = DIGIT_NUM + UPPERCASE_NUM + LOWERCASE_NUM
+
+    for c in s:
+        if c.isdigit():
+            ascii_list.append(ord(c) - ord('0'))
+        elif c.isupper():
+            ascii_list.append(ord(c) - ord('A') + DIGIT_NUM)
+        elif c.islower():
+            ascii_list.append(ord(c) - ord('a') + DIGIT_NUM + UPPERCASE_NUM)
+        else:
+            raise Exception()
+
+    ascii_list.reverse()
+
+    sum = 0
+
+    for i, n in enumerate(ascii_list):
+        sum = sum + n * (MD5_BASE ** i)
+
+    BEGIN_ASCII_NUM = ord('!') # space not allowed
+    PASSWD_BASE = ord('~') - BEGIN_ASCII_NUM + 1
+
+    new_ascii_list = [] # with punctution
+
+    while sum > 0:
+        new_ascii_list.append(sum % PASSWD_BASE)
+        sum = sum // PASSWD_BASE
+
+    new_ascii_list.reverse()
+    return ''.join([ chr(n + BEGIN_ASCII_NUM) for n in new_ascii_list ])
+
+
+def hashsum(hash):
+    def temp(s):
+        assert s
+        _hash = hash()
+        _hash.update(s)
+        return _hash.hexdigest()
+    return temp
+
+
+md5sum = hashsum(hashlib.md5)
+sha1sum = hashsum(hashlib.sha1)
+
+
+def is_strong_password(s):
+    result = re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[][!"#$%&\'()*+,./:;<=>?@\\^_`{|}~-])[\x21-\x7E]{8,}$', s)
+    print('"' + s + '"' + (' Yes!' if result else ' No!'))
+    return result
+
 
 USERNAME_LENGTH = 10
 PASSWORD_LENGTH = 16
@@ -53,73 +112,19 @@ if website and not username:
     if parsed_uri.netloc:
         website = parsed_uri.netloc
     website = website.lower()
-    md5 = hashlib.md5()
-    md5.update(website + password)
-    hash_website = md5.hexdigest()
-    username = hash_website[:USERNAME_LENGTH]
+    username = md5sum(website + password)[:USERNAME_LENGTH]
 elif not website and not username:
     is_account_generator = True
     timestamp = time.time()
     random_float = random.SystemRandom().random()
-    md5 = hashlib.md5()
-    md5.update(str(timestamp + random_float))
-    username = md5.hexdigest()[:USERNAME_LENGTH]
+    username = md5sum(str(timestamp + random_float))[:USERNAME_LENGTH]
 
-pwd_str = password
+cipher = sha1sum(password + md5sum(username))
+password = alphanum_to_alphanumpunct(cipher)[:PASSWORD_LENGTH]
+while not is_strong_password(password):
+    cipher = sha1sum(cipher)
+    password = alphanum_to_alphanumpunct(cipher)[:PASSWORD_LENGTH]
 
-assert username
-    
-md5 = hashlib.md5()
-md5.update(username)
-pwd_str = pwd_str + md5.hexdigest()
-    
-sha1 = hashlib.sha1()
-sha1.update(pwd_str)
-cipher = sha1.hexdigest()
-
-
-if not cipher.isalnum():
-    print("Error: Input String is not Alphabet or Number.")
-    exit()
-
-ascii_list = []
-
-DIGIT_NUM = ord('9') - ord('0') + 1
-UPPERCASE_NUM = ord('Z') - ord('A') + 1
-LOWERCASE_NUM = ord('z') - ord('a') + 1
-MD5_BASE = DIGIT_NUM + UPPERCASE_NUM + LOWERCASE_NUM
-
-for c in cipher:
-    if c.isdigit():
-        ascii_list.append(ord(c) - ord('0'))
-    elif c.isupper():
-        ascii_list.append(ord(c) - ord('A') + DIGIT_NUM)
-    elif c.islower():
-        ascii_list.append(ord(c) - ord('a') + DIGIT_NUM + UPPERCASE_NUM)
-    else:
-        raise Exception()
-
-ascii_list.reverse()
-
-sum = 0
-
-for i, n in enumerate(ascii_list):
-    sum = sum + n * (MD5_BASE ** i)
-
-BEGIN_ASCII_NUM = ord('!') # space not allowed
-PASSWD_BASE = ord('~') - BEGIN_ASCII_NUM + 1
-
-new_ascii_list = [] # with punctution
-
-while sum > 0:
-    new_ascii_list.append(sum % PASSWD_BASE)
-    sum = sum // PASSWD_BASE
-
-new_ascii_list.reverse()
-
-passwd_str = ''.join([ chr(n + BEGIN_ASCII_NUM) for n in new_ascii_list ])
-
-password = passwd_str[:PASSWORD_LENGTH]
 
 print("\n")
 if is_account_generator:
