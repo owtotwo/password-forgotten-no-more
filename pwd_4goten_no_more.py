@@ -27,7 +27,7 @@ Name supports Unicode (e.g. zh-cn).
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = "0.0.2"
+__version__ = "0.2.0"
 
 import hashlib
 import time
@@ -82,10 +82,18 @@ def hashsum(hash):
         return _hash.hexdigest()
     return temp
 
+def hashsum_many_times(hash):
+    _hashsum = hashsum(hash)
+    def temp(s, times):
+        _sum = s
+        for _ in range(times):
+            _sum = _hashsum(_sum)
+        return _sum
+    return temp
 
 md5sum = hashsum(hashlib.md5)
 sha1sum = hashsum(hashlib.sha1)
-
+sha1sum_many_times = hashsum_many_times(hashlib.sha1)
 
 def is_strong_password(s):
     result = re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[][!"#$%&\'()*+,./:;<=>?@\\^_`{|}~-])[\x21-\x7E]{8,}$', s)
@@ -95,6 +103,7 @@ def is_strong_password(s):
 
 USERNAME_LENGTH = 10
 PASSWORD_LENGTH = 16
+SHA1SUM_TIMES = 777777 # To EDG.clearlove
 
 is_account_generator = False
 
@@ -119,7 +128,7 @@ elif not website and not username:
     random_float = random.SystemRandom().random()
     username = md5sum(str(timestamp + random_float))[:USERNAME_LENGTH]
 
-cipher = sha1sum(password + md5sum(username))
+cipher = sha1sum_many_times(password + md5sum(username), SHA1SUM_TIMES)
 password = alphanum_to_alphanumpunct(cipher)[:PASSWORD_LENGTH]
 while not is_strong_password(password):
     cipher = sha1sum(cipher)

@@ -1,5 +1,13 @@
-# password-forgotten-no-more
+# password-forgotten-no-more (v2)
 An account and password generator, a password reminder as well.
+
+**Update on 2018/8/6. More Safe.**
+
+In order to prevent brute force, the v2 do more hash rounds to increase the consumption of computing resource.
+
+For keeping the weight light, it has not use the bcrypt. That is, without any dependencies but python standard library.
+
+**If you had use it at some time in the past, you should find the old version ([v1](https://github.com/owtotwo/password-forgotten-no-more/tree/v1)) to use.**
 
 # Usage
 `> python2 pwd_4goten_no_more.py`
