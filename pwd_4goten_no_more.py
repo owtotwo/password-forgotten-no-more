@@ -89,7 +89,7 @@ sha1sum = hashsum(hashlib.sha1)
 
 def is_strong_password(s):
     result = re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[][!"#$%&\'()*+,./:;<=>?@\\^_`{|}~-])[\x21-\x7E]{8,}$', s)
-    print('"' + s + '"' + (' Yes!' if result else ' No!'))
+    # print('"' + s + '"' + (' Yes!' if result else ' No!'))
     return result
 
 
