@@ -2,7 +2,7 @@
 An account and password generator, a password reminder as well.
 
 # Usage
-`> python2 password_4gotten_no_more.py`
+`> python2 pwd_4goten_no_more.py`
 
 If you provide a website name or a username (just keep the Website input 
 empty), and your common password, the corresponding strong password will remind
